@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reverse String</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --border: #2a2a3a;
+            --accent: #e8ff47;
+            --accent2: #47d4ff;
+            --text: #f0f0f8;
+            --muted: #5a5a7a;
+            --danger: #ff4757;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Space Mono', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        /* Subtle grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(232,255,71,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(232,255,71,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 620px;
+        }
+
+        /* Header */
+        header {
+            margin-bottom: 2.5rem;
+        }
+
+        .tag {
+            display: inline-block;
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 0.2rem 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.2rem, 6vw, 3.5rem);
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+
+        h1 span {
+            color: var(--accent);
+        }
+
+        .subtitle {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        /* Mode toggle */
+        .mode-toggle {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            width: fit-content;
+            position: relative;
+        }
+
+        .mode-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mode-btn.active {
+            color: var(--bg);
+        }
+
+        .mode-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 50%;
+            background: var(--accent);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 0;
+        }
+
+        .mode-slider.right {
+            transform: translateX(100%);
+        }
+
+        /* Mode description */
+        .mode-desc {
+            font-size: 0.68rem;
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+            min-height: 1.2em;
+            transition: opacity 0.2s;
+        }
+
+        .mode-desc .highlight {
+            color: var(--accent2);
+        }
+
+        /* Input area */
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .input-label {
+            font-size: 0.65rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--muted);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        #textInput {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: 'Space Mono', monospace;
+            font-size: 1.1rem;
+            padding: 1rem 1.2rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            caret-color: var(--accent);
+        }
+
+        #textInput::placeholder {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        #textInput:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(232,255,71,0.08);
+        }
+
+        /* Char counter */
+        .char-counter {
+            position: absolute;
+            right: 1rem;
+            bottom: 0.85rem;
+            font-size: 0.65rem;
+            color: var(--muted);
+            pointer-events: none;
+        }
+
+        .char-counter.warning { color: var(--accent); }
+
+        /* Button */
+        #reverseBtn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #reverseBtn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: white;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        #reverseBtn:hover::after { opacity: 0.1; }
+        #reverseBtn:active { transform: scale(0.99); }
+
+        #reverseBtn:disabled {
+            background: var(--border);
+            color: var(--muted);
+            cursor: not-allowed;
+        }
+
+        #reverseBtn:disabled::after { display: none; }
+
+        /* Button hidden state */
+        #reverseBtn.hidden {
+            display: none;
+        }
+
+        /* Output */
+        .output-section {
+            border: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .output-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .output-label {
+            font-size: 0.65rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .output-badge {
+            font-size: 0.6rem;
+            letter-spacing: 0.1em;
+            padding: 0.15rem 0.5rem;
+            background: transparent;
+            border: 1px solid var(--muted);
+            color: var(--muted);
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+
+        .output-badge.live {
+            border-color: var(--accent2);
+            color: var(--accent2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        #outputText {
+            padding: 1.2rem 1rem;
+            font-size: 1.1rem;
+            min-height: 3.5rem;
+            word-break: break-all;
+            color: var(--text);
+            transition: all 0.3s;
+        }
+
+        #outputText.empty {
+            color: var(--muted);
+            font-size: 0.8rem;
+            font-style: italic;
+        }
+
+        #outputText.flash {
+            color: var(--accent);
+            animation: flashAnim 0.4s ease forwards;
+        }
+
+        @keyframes flashAnim {
+            0%   { color: var(--accent); }
+            60%  { color: var(--accent2); }
+            100% { color: var(--text); }
+        }
+
+        /* Algorithm info */
+        .algo-info {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-left: 2px solid var(--accent);
+            background: rgba(232,255,71,0.03);
+        }
+
+        .algo-info p {
+            font-size: 0.68rem;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .algo-info strong {
+            color: var(--accent);
+            font-weight: 400;
+        }
+
+        /* Copy button */
+        #copyBtn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            cursor: pointer;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: color 0.2s;
+            padding: 0;
+        }
+
+        #copyBtn:hover { color: var(--accent); }
+        #copyBtn.copied { color: var(--accent2); }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .mode-btn { padding: 0.6rem 0.9rem; font-size: 0.65rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <header>
+        <div class="tag">// utility tool</div>
+        <h1>Reverse<br><span>String</span></h1>
+        <p class="subtitle">Two algorithms. One result. Zero frameworks.</p>
+    </header>
+
+    <!-- Mode Selector -->
+    <div class="mode-toggle" role="group" aria-label="Algorithm mode">
+        <div class="mode-slider" id="modeSlider"></div>
+        <button class="mode-btn active" id="btnForLoop" data-mode="for">For Loop</button>
+        <button class="mode-btn" id="btnBuiltIn" data-mode="builtin">Built-In</button>
+    </div>
+
+    <p class="mode-desc" id="modeDesc">
+        <span class="highlight">FOR LOOP</span> — Press the button to reverse (appears after 3+ characters).
+    </p>
+
+    <!-- Input -->
+    <div class="input-wrapper">
+        <label class="input-label" for="textInput">// input string</label>
+        <input
+            type="text"
+            id="textInput"
+            placeholder="Ej: AI4Devs"
+            autocomplete="off"
+            spellcheck="false"
+            maxlength="200"
+        />
+        <span class="char-counter" id="charCounter">0</span>
+    </div>
+
+    <!-- Reverse Button (for loop mode only) -->
+    <button id="reverseBtn" class="hidden" aria-label="Reverse string">
+        ⟵ Reverse String
+    </button>
+
+    <!-- Output -->
+    <div class="output-section" role="region" aria-label="Result">
+        <div class="output-header">
+            <span class="output-label">// output</span>
+            <button id="copyBtn" aria-label="Copy result" title="Copy to clipboard">[ copy ]</button>
+            <span class="output-badge" id="liveBadge">idle</span>
+        </div>
+        <div id="outputText" class="empty">Your reversed string will appear here…</div>
+    </div>
+
+    <!-- Algorithm explanation -->
+    <div class="algo-info">
+        <p id="algoExplain">
+            <strong>for loop:</strong> Iterates from the last index down to 0,
+            appending each character to a new string. O(n) time, O(n) space.
+            Manual but transparent — every step is visible.
+        </p>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
